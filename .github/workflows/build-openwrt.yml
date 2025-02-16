@@ -17,7 +17,7 @@ jobs:
     ./scripts/feeds install -a
 
     - name: Prepare OpenWrt config
-  run: |
+run: |
     # 目标架构
     echo "CONFIG_TARGET_x86=y" > .config
     echo "CONFIG_TARGET_x86_64=y" >> .config
