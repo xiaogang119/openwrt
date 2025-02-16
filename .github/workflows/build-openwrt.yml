@@ -1,63 +1,71 @@
+# 工作流名称
 name: Build OpenWrt x86
+
+# 触发条件
 on:
   workflow_dispatch:  # 允许手动触发
+
+# 任务定义
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git
-        - name: Update and install feeds
-  run: |
-    ./scripts/feeds update -a
-    ./scripts/feeds install -a
+      # Step 1: 拉取代码
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Prepare OpenWrt config
-run: |
-    # 目标架构
-    echo "CONFIG_TARGET_x86=y" > .config
-    echo "CONFIG_TARGET_x86_64=y" >> .config
+      # Step 2: 安装依赖
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git \
+            python3 python3-distutils libssl-dev unzip
 
-    # OpenClash 核心
-    echo "CONFIG_PACKAGE_luci-app-openclash=y" >> .config
-    echo "CONFIG_PACKAGE_luci-i18n-openclash-zh-cn=y" >> .config
+      # Step 3: 更新和安装 feeds
+      - name: Update and install feeds
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
-    # 基础依赖
-    echo "CONFIG_PACKAGE_coreutils=y" >> .config
-    echo "CONFIG_PACKAGE_coreutils-nohup=y" >> .config
-    echo "CONFIG_PACKAGE_iptables-mod-extra=y" >> .config
-    echo "CONFIG_PACKAGE_libcap=y" >> .config
-    echo "CONFIG_PACKAGE_libcap-bin=y" >> .config
+      # Step 4: 配置 OpenWrt
+      - name: Prepare OpenWrt config
+        run: |
+          # 目标架构
+          echo "CONFIG_TARGET_x86=y" > .config
+          echo "CONFIG_TARGET_x86_64=y" >> .config
 
-    # 网络工具
-    echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
-    echo "CONFIG_PACKAGE_ipset=y" >> .config
-    echo "CONFIG_PACKAGE_libustream-openssl=y" >> .config
+          # OpenClash 核心
+          echo "CONFIG_PACKAGE_luci-app-openclash=y" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-openclash-zh-cn=y" >> .config
 
-    # 内核模块
-    echo "CONFIG_KERNEL_TUN=y" >> .config
-    echo "CONFIG_KERNEL_NETFILTER=y" >> .config
+          # 基础依赖
+          echo "CONFIG_PACKAGE_coreutils=y" >> .config
+          echo "CONFIG_PACKAGE_coreutils-nohup=y" >> .config
+          echo "CONFIG_PACKAGE_iptables-mod-extra=y" >> .config
+          echo "CONFIG_PACKAGE_libcap=y" >> .config
+          echo "CONFIG_PACKAGE_libcap-bin=y" >> .config
 
-    # 生成配置
-    make defconfig
+          # 网络工具
+          echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
+          echo "CONFIG_PACKAGE_ipset=y" >> .config
+          echo "CONFIG_PACKAGE_libustream-openssl=y" >> .config
 
+          # 内核模块
+          echo "CONFIG_KERNEL_TUN=y" >> .config
+          echo "CONFIG_KERNEL_NETFILTER=y" >> .config
 
-    - name: Build OpenWrt
-      run: |
-        make -j$(nproc) download
-        make -j$(nproc)
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: openwrt-x86-bin
-        path: bin/targets/x86/64/*
-        - name: Install dependencies
-    run: |
-    sudo apt-get update
-    sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git \
-      python3 python3-distutils libssl-dev unzip
+          # 生成配置
+          make defconfig
 
+      # Step 5: 编译 OpenWrt
+      - name: Build OpenWrt
+        run: |
+          make -j$(nproc) download
+          make -j$(nproc)
+
+      # Step 6: 上传产物
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: openwrt-x86-bin
+          path: bin/targets/x86/64/*
