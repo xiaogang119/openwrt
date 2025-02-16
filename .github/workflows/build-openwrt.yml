@@ -11,11 +11,37 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git
+        - name: Update and install feeds
+  run: |
+    ./scripts/feeds update -a
+    ./scripts/feeds install -a
+
     - name: Prepare OpenWrt config
-      run: |
-        echo "CONFIG_TARGET_x86=y" > .config
-        echo "CONFIG_TARGET_x86_64=y" >> .config
-        make defconfig
+  run: |
+    # 基础架构配置
+    echo "CONFIG_TARGET_x86=y" > .config
+    echo "CONFIG_TARGET_x86_64=y" >> .config
+
+    # OpenClash 核心配置
+    echo "CONFIG_PACKAGE_luci-app-openclash=y" >> .config
+    echo "CONFIG_PACKAGE_luci-i18n-openclash-zh-cn=y" >> .config  # 中文语言包
+
+    # 依赖库配置（必须）
+    echo "CONFIG_PACKAGE_coreutils=y" >> .config
+    echo "CONFIG_PACKAGE_coreutils-nohup=y" >> .config
+    echo "CONFIG_PACKAGE_iptables-mod-extra=y" >> .config
+    echo "CONFIG_PACKAGE_libcap=y" >> .config
+    echo "CONFIG_PACKAGE_libcap-bin=y" >> .config
+    echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
+    echo "CONFIG_PACKAGE_bash=y" >> .config
+    echo "CONFIG_PACKAGE_ipset=y" >> .config
+    echo "CONFIG_PACKAGE_libustream-openssl=y" >> .config
+    echo "CONFIG_KERNEL_TUN=y" >> .config
+    echo "CONFIG_KERNEL_NETFILTER=y" >> .config
+
+    # 生成默认配置
+    make defconfig
+
     - name: Build OpenWrt
       run: |
         make -j$(nproc) download
