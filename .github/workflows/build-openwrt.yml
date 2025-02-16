@@ -1,0 +1,33 @@
+name: Build OpenWrt x86
+on:
+  workflow_dispatch:  # 允许手动触发
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git
+    - name: Prepare OpenWrt config
+      run: |
+        echo "CONFIG_TARGET_x86=y" > .config
+        echo "CONFIG_TARGET_x86_64=y" >> .config
+        make defconfig
+    - name: Build OpenWrt
+      run: |
+        make -j$(nproc) download
+        make -j$(nproc)
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: openwrt-x86-bin
+        path: bin/targets/x86/64/*
+        - name: Install dependencies
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y build-essential libncurses5-dev zlib1g-dev git \
+      python3 python3-distutils libssl-dev unzip
+
